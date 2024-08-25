@@ -1,30 +1,64 @@
-const prompt = require('prompt-sync')({ sigint: true });
-const ExcelJS = require('exceljs');
-let workbook = new ExcelJS.Workbook();
-let worksheet = workbook.addWorksheet('Names');
-let namesList = [];
-const { addNames, readFromExcel, addWorksheet } = require('./services/excelManipulation.service');
-worksheet.columns = [
-    { header: 'FirstName', key: 'firstName', width: 32 },
-    { header: 'LastName', key: 'lastName', width: 32 },
-    { header: 'Age', key: 'age', width: 10 }
-];
+const express = require('express');
+const {
+    initialize,
+    getUsers,
+    addUser,
+    updateUser,
+    deleteUser
+} = require('./services/excelManipulation.service.js');
 
-worksheet.getRow(1).font = { bold: true };
+const app = express();
+const PORT = 3000;
 
+app.use(express.json());
 
+app.get('/users', (req, res) => {
+    res.json(getUsers());
+});
 
-readFromExcel(workbook);
+app.post('/users', (req, res) => {
+    const { firstName, lastName, age } = req.body;
 
+    if (!firstName || !lastName || !age) {
+        return res.status(400).json({ message: 'Please provide all required fields: firstName, lastName, age.' });
+    }
 
-// const express = require('express');
+    addUser(firstName, lastName, age)
+        .then(newUser => {
+            res.status(201).json(newUser);
+        })
+        .catch(err => {
+            res.status(500).json({ message: err.message });
+        });
+});
 
-// const app = express();
+app.put('/users/:firstName', (req, res) => {
+    const { firstName } = req.params;
+    const { lastName, age } = req.body;
 
-// app.get('/users-list', (req, res) => {
-//   // Get complete list of users
-//   const usersList = [];
+    updateUser(firstName, { lastName, age })
+        .then(updatedUser => {
+            res.json(updatedUser);
+        })
+        .catch(err => {
+            res.status(500).json({ message: err.message });
+        });
+});
 
-//   // Send the usersList as a response to the client
-//   res.send(usersList);
-// });
+app.delete('/users/:firstName', (req, res) => {
+    const { firstName } = req.params;
+
+    deleteUser(firstName)
+        .then(() => {
+            res.status(204).send();
+        })
+        .catch(err => {
+            res.status(500).json({ message: err.message });
+        });
+});
+
+initialize().then(() => {
+    app.listen(PORT, () => {
+        console.log(`Server is running on http://localhost:${PORT}`);
+    });
+});
