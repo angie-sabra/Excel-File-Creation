@@ -1,4 +1,3 @@
-// const ExcelJs = require('exceljs/dist/es5');
 const prompt = require('prompt-sync')({ sigint: true });
 const ExcelJS = require('exceljs');
 let workbook = new ExcelJS.Workbook();
@@ -16,3 +15,16 @@ worksheet.getRow(1).font = { bold: true };
 
 
 readFromExcel(workbook);
+
+
+// const express = require('express');
+
+// const app = express();
+
+// app.get('/users-list', (req, res) => {
+//   // Get complete list of users
+//   const usersList = [];
+
+//   // Send the usersList as a response to the client
+//   res.send(usersList);
+// });
